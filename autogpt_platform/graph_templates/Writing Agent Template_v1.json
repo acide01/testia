@@ -1,0 +1,116 @@
+{
+  "id": "8f4d7c2a-9e6b-4f1a-8d3c-5e7f9a2b4c6d",
+  "version": 1,
+  "is_active": false,
+  "is_template": true,
+  "name": "Writing Agent Template",
+  "description": "A comprehensive writing agent that can create various types of content in different styles, tones, and formats. Perfect for content creators, marketers, writers, and anyone who needs high-quality written content.",
+  "nodes": [
+    {
+      "id": "input-node-1",
+      "block_id": "7c8b2f5a-4e9d-4a3b-8f7e-2c6b5d8e9f1a",
+      "input_default": {
+        "topic": "The Benefits of Remote Work",
+        "writing_style": "professional",
+        "writing_format": "article",
+        "writing_tone": "conversational",
+        "target_length": "medium",
+        "target_audience": "business professionals",
+        "key_points": [],
+        "additional_context": "",
+        "include_outline": false
+      },
+      "metadata": {
+        "position": {
+          "x": 100,
+          "y": 200
+        },
+        "title": "Creative Writing Agent",
+        "description": "Main writing generation block with comprehensive customization options"
+      }
+    },
+    {
+      "id": "prompt-generator-node",
+      "block_id": "9e1f8c4b-6d3a-4f8b-9e2c-7a5b8d4e1f9c",
+      "input_default": {
+        "writing_type": "article",
+        "difficulty_level": "intermediate",
+        "subject_area": "technology",
+        "num_prompts": 5
+      },
+      "metadata": {
+        "position": {
+          "x": 100,
+          "y": 400
+        },
+        "title": "Writing Prompt Generator",
+        "description": "Generate creative writing prompts for inspiration"
+      }
+    }
+  ],
+  "links": [],
+  "input_schema": {
+    "topic": {
+      "type": "string",
+      "title": "Writing Topic",
+      "description": "The main subject or topic to write about",
+      "default": "The Benefits of Remote Work"
+    },
+    "writing_style": {
+      "type": "string",
+      "title": "Writing Style",
+      "description": "Choose the writing style",
+      "enum": ["professional", "creative", "academic", "casual", "persuasive", "technical", "journalistic", "humorous"],
+      "default": "professional"
+    },
+    "writing_format": {
+      "type": "string", 
+      "title": "Writing Format",
+      "description": "Select the format for your content",
+      "enum": ["article", "blog_post", "email", "letter", "essay", "story", "report", "proposal", "review", "social_media_post", "script", "poem"],
+      "default": "article"
+    },
+    "writing_tone": {
+      "type": "string",
+      "title": "Writing Tone",
+      "description": "Set the tone of voice",
+      "enum": ["formal", "informal", "friendly", "authoritative", "conversational", "inspirational", "neutral", "enthusiastic"],
+      "default": "conversational"
+    },
+    "target_length": {
+      "type": "string",
+      "title": "Target Length",
+      "description": "Desired content length",
+      "enum": ["short", "medium", "long", "extended"],
+      "default": "medium"
+    },
+    "target_audience": {
+      "type": "string",
+      "title": "Target Audience",
+      "description": "Who will be reading this content",
+      "default": "business professionals"
+    }
+  },
+  "output_schema": {
+    "content": {
+      "type": "string",
+      "title": "Generated Content",
+      "description": "The AI-generated written content"
+    },
+    "word_count": {
+      "type": "integer",
+      "title": "Word Count",
+      "description": "Approximate number of words in the content"
+    },
+    "writing_summary": {
+      "type": "object",
+      "title": "Writing Summary",
+      "description": "Summary of the writing parameters used"
+    },
+    "prompts": {
+      "type": "array",
+      "title": "Writing Prompts",
+      "description": "Generated writing prompts for inspiration"
+    }
+  }
+}

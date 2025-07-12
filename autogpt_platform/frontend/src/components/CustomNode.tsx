@@ -184,7 +184,7 @@ export const CustomNode = React.memo(
     useEffect(() => {
       isInitialSetup.current = false;
       setHardcodedValues(fillDefaults(data.hardcodedValues, data.inputSchema));
-    }, []);
+    }, [fillDefaults, setHardcodedValues, data.hardcodedValues, data.inputSchema]);
 
     const setErrors = useCallback(
       (errors: { [key: string]: string }) => {

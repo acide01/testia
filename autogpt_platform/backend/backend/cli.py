@@ -23,12 +23,18 @@ def get_pid() -> int | None:
     if not file_path.exists():
         return None
 
-    os.makedirs(file_path.parent, exist_ok=True)
-    with open(file_path, "r", encoding="utf-8") as file:
-        pid = file.read()
+    # Ensure directory exists before attempting to read
     try:
+        os.makedirs(file_path.parent, exist_ok=True)
+        with open(file_path, "r", encoding="utf-8") as file:
+            pid = file.read().strip()
         return int(pid)
-    except ValueError:
+    except (ValueError, OSError, IOError) as e:
+        # If we can't read or parse the PID file, remove it and return None
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass  # File might already be gone
         return None
 
 
@@ -129,12 +135,24 @@ async def reddit(server_address: str):
     headers = {"Content-Type": "application/json"}
     data = test_graph.model_dump_json()
 
-    response = await Requests(trusted_origins=[server_address]).post(
-        url, headers=headers, data=data
-    )
-
-    graph_id = response.json()["id"]
-    print(f"Graph created with ID: {graph_id}")
+    try:
+        response = await Requests(trusted_origins=[server_address]).post(
+            url, headers=headers, data=data
+        )
+        
+        if response.status != 200:
+            print(f"Failed to create graph. Status: {response.status}")
+            return
+            
+        response_data = response.json()
+        if not isinstance(response_data, dict) or "id" not in response_data:
+            print("Invalid response format from server")
+            return
+            
+        graph_id = response_data["id"]
+        print(f"Graph created with ID: {graph_id}")
+    except Exception as e:
+        print(f"Error creating graph: {e}")
 
 
 @test.command()
@@ -152,31 +170,44 @@ async def populate_db(server_address: str):
     headers = {"Content-Type": "application/json"}
     data = test_graph.model_dump_json()
 
-    response = await Requests(trusted_origins=[server_address]).post(
-        url, headers=headers, data=data
-    )
+    try:
+        response = await Requests(trusted_origins=[server_address]).post(
+            url, headers=headers, data=data
+        )
+        
+        if response.status != 200:
+            print(f"Failed to create graph. Status: {response.status}")
+            return
+            
+        response_data = response.json()
+        if not isinstance(response_data, dict) or "id" not in response_data:
+            print("Invalid response format from server")
+            return
+            
+        graph_id = response_data["id"]
 
-    graph_id = response.json()["id"]
-
-    if response.status == 200:
-        execute_url = f"{server_address}/graphs/{response.json()['id']}/execute"
+        # Execute the graph
+        execute_url = f"{server_address}/graphs/{graph_id}/execute"
         text = "Hello, World!"
         input_data = {"input": text}
-        response = Requests(trusted_origins=[server_address]).post(
+        response = await Requests(trusted_origins=[server_address]).post(
             execute_url, headers=headers, json=input_data
         )
 
+        # Schedule the graph
         schedule_url = f"{server_address}/graphs/{graph_id}/schedules"
-        data = {
+        schedule_data = {
             "graph_id": graph_id,
             "cron": "*/5 * * * *",
             "input_data": {"input": "Hello, World!"},
         }
-        response = Requests(trusted_origins=[server_address]).post(
-            schedule_url, headers=headers, json=data
+        response = await Requests(trusted_origins=[server_address]).post(
+            schedule_url, headers=headers, json=schedule_data
         )
 
-    print("Database populated with: \n- graph\n- execution\n- schedule")
+        print("Database populated with: \n- graph\n- execution\n- schedule")
+    except Exception as e:
+        print(f"Error populating database: {e}")
 
 
 @test.command()
@@ -192,22 +223,36 @@ async def graph(server_address: str):
     url = f"{server_address}/graphs"
     headers = {"Content-Type": "application/json"}
     data = create_test_graph().model_dump_json()
-    response = await Requests(trusted_origins=[server_address]).post(
-        url, headers=headers, data=data
-    )
-
-    if response.status == 200:
-        print(response.json()["id"])
-        execute_url = f"{server_address}/graphs/{response.json()['id']}/execute"
-        text = "Hello, World!"
-        input_data = {"input": text}
+    
+    try:
         response = await Requests(trusted_origins=[server_address]).post(
-            execute_url, headers=headers, json=input_data
+            url, headers=headers, data=data
         )
 
-    else:
-        print("Failed to send graph")
-        print(f"Response: {response.text()}")
+        if response.status == 200:
+            response_data = response.json()
+            if not isinstance(response_data, dict) or "id" not in response_data:
+                print("Invalid response format from server")
+                return
+                
+            graph_id = response_data["id"]
+            print(graph_id)
+            
+            execute_url = f"{server_address}/graphs/{graph_id}/execute"
+            text = "Hello, World!"
+            input_data = {"input": text}
+            response = await Requests(trusted_origins=[server_address]).post(
+                execute_url, headers=headers, json=input_data
+            )
+        else:
+            print("Failed to send graph")
+            try:
+                error_text = response.text()
+                print(f"Response: {error_text}")
+            except:
+                print(f"Response status: {response.status}")
+    except Exception as e:
+        print(f"Error creating graph: {e}")
 
 
 @test.command()
